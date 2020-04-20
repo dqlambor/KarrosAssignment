@@ -29,19 +29,22 @@ public class AssignmentTest {
     @AfterTest
     public void afterTest() {
         driver.quit();
+        
     }
     @Test
     public void startFireFoxDriver() throws Exception{
         //ChromeOptions options = new ChromeOptions();
         //options.addArguments(new String[]{"--disable-notifications"});
         //System.setProperty("webdriver.chrome.driver", "/Usr/local/bin/chromedriver");
-
+        driver.manage().window().maximize();
         driver.navigate().to("https://www.google.com/");
 
-        //driver.navigate().to("www.google.com/");// must use http"
+        //driver.navigate().to("www.google.com/");// muses se http"
         //java.lang.Thread.sleep(10000);
         Assert.assertTrue(driver.getTitle().startsWith("Google"));
+
         java.lang.Thread.sleep(2000);
+
     }
 
 }
