@@ -1,6 +1,12 @@
 package KarrosAssignmentPackge;
 
 import java.util.concurrent.TimeUnit;
+
+import io.restassured.RestAssured;
+import io.restassured.path.json.JsonPath;
+import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
+import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -33,7 +39,7 @@ public class AssignmentTest {
     @AfterTest
     public void afterTest() {
         driver.quit();
-        
+        System.out.println("Tearing down...finish this test!!!");
     }
 
     @Test(priority = 1)
@@ -73,10 +79,134 @@ public class AssignmentTest {
     }
 
     @Test(priority = 4)
-    public void validateSubmitFilter(){
-        // validate the ability to submit Filter.
+    public void validateCancelFilter() throws Exception{
+        // cancel and close the Filter
+        // Filter already open at previous step.
+        driver.findElement(By.xpath("//button[@class='btn btn-default']")).click();
+        Assert.assertFalse(driver.findElement(By.xpath("//div[@class='modal-content']")).isDisplayed());
+        java.lang.Thread.sleep(3000);
+    }
+
+    @Test(priority = 5)
+    public void validateApplyFilter() throws Exception {
+        // validate the ability to apply Filter ( NOT for checking result)
+
+        driver.findElement(By.xpath("//button[@class='btn btn-filter module_grid__btn_filter btn btn-default']")).click();
+        driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+
+        // select status Inactive from dropdown list
+        driver.findElement(By.xpath("//select[@id='formControlsSelect']/option[@value='inactive']")).click();
+
+        ///html//input[@id='formHorizontalEmail']
+        driver.findElement(By.xpath("/html//input[@id='formHorizontalEmail']")).sendKeys("quangnguyen90@gmail.com");
+
+        // /html//input[@id='formHorizontalStudentID']
+        driver.findElement(By.xpath("/html//input[@id='formHorizontalStudentID']")).sendKeys("0812408");
+
+        // /html//input[@id='formHorizontalStudentFN']
+        driver.findElement(By.xpath("/html//input[@id='formHorizontalStudentFN']")).sendKeys("Quang");
+
+        // /html//input[@id='formHorizontalStudentLN']
+        driver.findElement(By.xpath("/html//input[@id='formHorizontalStudentLN']")).sendKeys("Nguyen");
+
+        // Click to Apply Filter:
+        driver.findElement(By.xpath("//button[@class='btn-filter btn btn-default']")).click();
+
+        //to validate all the filter conditions are applied correctly on UI
+        WebElement parentElement = driver.findElement(By.xpath("//div[@class='query__filter']"));
+
+        List<WebElement> childElements = parentElement
+                .findElements(By.xpath("//a[@class='query__filter__item']"));
+
+        String[] conditionItems = new String[] { "Inactive","quangnguyen90@gmail.com","0812408","Quang","Nguyen" };
+
+        int iSize = childElements.size();
+        int testResult = 0;
+        for (int i = 0; i < iSize; i++){
+            //if childelement[i] contains string[i] =>
+            if(childElements.get(i).getText().contains(conditionItems[i]) != true){
+                testResult = 0;
+                break;
+            }else
+                testResult = 1;
+        }
+        Assert.assertEquals(String.valueOf(testResult), "1");
+        System.out.println("Filter condition has been applied correctly.");
+
+        java.lang.Thread.sleep(4000);
+    }
+
+    public int checkFilterAPI(String status, String requesterEmail, String firstName, String lastName, String studentDistrictId) {
+
+        int iResut = 0;
+        RestAssured.baseURI = "http://demo6906887.mockable.io/api/v1";
+        RequestSpecification httpRequest = RestAssured.given();
+
+        // Get JSON response from API
+        Response response = httpRequest.queryParam("status", status).queryParam("requesterEmail", requesterEmail).queryParam("firstName", firstName).queryParam("lastName", lastName).queryParam("studentDistrictId", studentDistrictId).get("/studentAccessRequests");
+
+        // get the JsonPath object instance from the Response interface
+        JsonPath jsonPathEvaluator = response.jsonPath();
+
+        // Read all the records item in JSON as a List of String. Each item in the list
+        List<String> responseStatus = jsonPathEvaluator.getList("studentAccessRequests.status");
+        List<String> responseRequesterEmail = jsonPathEvaluator.getList("studentAccessRequests.requesterEmail");
+        List<String> responseFirstName = jsonPathEvaluator.getList("studentAccessRequests.firstName");
+        List<String> responseLastName = jsonPathEvaluator.getList("studentAccessRequests.lastName");
+        List<String> responseStudentDistrictId = jsonPathEvaluator.getList("studentAccessRequests.studentDistrictId");
 
 
+        //compare keywords input vs returned data
+        // Idea: each attribute of
+        for (int i = 0; i < responseStatus.size(); i++) {
+            if (responseStatus.get(i).contains(status) == true) {
+                if (responseRequesterEmail.get(i).contains(requesterEmail) == true) {
+                    if (responseFirstName.get(i).contains(firstName) == true) {
+                        if (responseLastName.get(i).contains(lastName) == true) {
+                            if (responseStudentDistrictId.get(i).contains(studentDistrictId) == true) {
+                                iResut = 1;
+                                System.out.println("First name is: " + responseFirstName.get(i));
+                                // break; //Break to test 1st result
+                            } else {
+                                iResut = 0;
+                                System.out.println("Response responseStudentDistrictId " + responseStudentDistrictId.get(i) + " does NOT contains studentDistrictId " + studentDistrictId);
+                                break;
+                            }
+                        } else {
+                            iResut = 0;
+                            System.out.println("Response of Last Name " + responseStudentDistrictId.get(i) + " does NOT contains lastname " + lastName);
+                            break;
+                        }
+                    } else {
+                        iResut = 0;
+                        System.out.println("Response of FirstName " + responseFirstName.get(i) + " does NOT contains FirstName " + firstName);
+                        break;
+                    }
+
+                } else {
+                    iResut = 0;
+                    System.out.println("Response of requesterEmail " + responseRequesterEmail.get(i) + " does NOT contains requesterEmail " + requesterEmail);
+                    break;
+                }
+            } else {
+                iResut = 0;
+                System.out.println("Response status [" + responseStatus.get(i) + "] of the item #" + i + " does NOT contains status from keyword [" + status + "]");
+                break;
+            }
+
+        }
+        //return 1 when all matched
+        return iResut;
+    }
+
+
+    @Test(priority = 6)
+    public void testFilter() {
+        int testResult = this.checkFilterAPI("approved", "test+giapios@karrostech.com", "KIMBER", "MICHALSON", "111318");
+        String strResult = String.valueOf(testResult);
+
+        Assert.assertEquals(strResult, "1");
+        System.out.println("Filter Success");
     }
 
     @Test(priority = 99)
