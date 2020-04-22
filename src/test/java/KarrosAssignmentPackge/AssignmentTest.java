@@ -36,6 +36,7 @@ public class AssignmentTest {
     public void beforeTest() {
         driver = new FirefoxDriver();
     }
+
     @AfterTest
     public void afterTest() {
         driver.quit();
@@ -55,7 +56,7 @@ public class AssignmentTest {
     }
 
     @Test(priority = 2)
-    public void validateLogin() throws Exception{
+    public void validateLogin() throws Exception {
 
         driver.findElement(By.xpath("//input[@name='email']")).sendKeys("admin@test.com");
         driver.findElement(By.xpath("//input[@name='password']")).sendKeys("test123");
@@ -66,76 +67,54 @@ public class AssignmentTest {
 
         Assert.assertTrue(driver.findElement(By.xpath("//a[contains(.,'Parent Portal')]")).isDisplayed());
         System.out.println("Login successfully.");
+        java.lang.Thread.sleep(1000);
     }
 
+    // to Verify filter Student Access Request with INACTIVE
     @Test(priority = 3)
-    public void validateOpenFilterWindows() throws Exception {
-        // validate the ability to open Filter windows.
-        driver.findElement(By.xpath("//button[@class='btn btn-filter module_grid__btn_filter btn btn-default']")).click();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-
-        Assert.assertTrue(driver.findElement(By.xpath("//div[@class='modal-content']")).isDisplayed());
-        java.lang.Thread.sleep(2000);
-    }
-
-    @Test(priority = 4)
-    public void validateCancelFilter() throws Exception{
-        // cancel and close the Filter
-        // Filter already open at previous step.
-        driver.findElement(By.xpath("//button[@class='btn btn-default']")).click();
-        Assert.assertFalse(driver.findElement(By.xpath("//div[@class='modal-content']")).isDisplayed());
-        java.lang.Thread.sleep(3000);
-    }
-
-    @Test(priority = 5)
-    public void validateApplyFilter() throws Exception {
-        // validate the ability to apply Filter ( NOT for checking result)
+    public void validateInactiveFilter() throws Exception {
 
         driver.findElement(By.xpath("//button[@class='btn btn-filter module_grid__btn_filter btn btn-default']")).click();
         driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
 
         // select status Inactive from dropdown list
         driver.findElement(By.xpath("//select[@id='formControlsSelect']/option[@value='inactive']")).click();
-
-        ///html//input[@id='formHorizontalEmail']
-        driver.findElement(By.xpath("/html//input[@id='formHorizontalEmail']")).sendKeys("quangnguyen90@gmail.com");
-
-        // /html//input[@id='formHorizontalStudentID']
-        driver.findElement(By.xpath("/html//input[@id='formHorizontalStudentID']")).sendKeys("0812408");
-
-        // /html//input[@id='formHorizontalStudentFN']
-        driver.findElement(By.xpath("/html//input[@id='formHorizontalStudentFN']")).sendKeys("Quang");
-
-        // /html//input[@id='formHorizontalStudentLN']
-        driver.findElement(By.xpath("/html//input[@id='formHorizontalStudentLN']")).sendKeys("Nguyen");
-
+        java.lang.Thread.sleep(1000);
         // Click to Apply Filter:
         driver.findElement(By.xpath("//button[@class='btn-filter btn btn-default']")).click();
+        java.lang.Thread.sleep(1000);
 
-        //to validate all the filter conditions are applied correctly on UI
-        WebElement parentElement = driver.findElement(By.xpath("//div[@class='query__filter']"));
+        //to validate result table only contains INACTIVE item.
+        // parentElement contains all results
+        WebElement parentElement = driver.findElement(By.cssSelector("tbody"));
 
+        //get list of filter results:
         List<WebElement> childElements = parentElement
-                .findElements(By.xpath("//a[@class='query__filter__item']"));
+                .findElements(By.xpath("//table/tbody/tr/td[2]/div/p"));
 
-        String[] conditionItems = new String[] { "Inactive","quangnguyen90@gmail.com","0812408","Quang","Nguyen" };
-
+        // Checking each item in the result column
         int iSize = childElements.size();
         int testResult = 0;
-        for (int i = 0; i < iSize; i++){
-            //if childelement[i] contains string[i] =>
-            if(childElements.get(i).getText().contains(conditionItems[i]) != true){
+        for (int i = 0; i < iSize; i++) {
+            //if childElement[i] does not contain "Inactive" => fail => return 0
+            if (childElements.get(i).getText().contains("Inactive") != true) {
                 testResult = 0;
+                System.out.println("Inactive Filter does not execute correctly. There is [" + childElements.get(i).getText()+"] item from result table.");
                 break;
-            }else
+            } else {
                 testResult = 1;
+                System.out.println("Item correct ==>> " + childElements.get(i).getText());
+            }
+
         }
+        //  Assert resutl: testResult = 1 means all filter result for "Inactive" are correct.
         Assert.assertEquals(String.valueOf(testResult), "1");
         System.out.println("Filter condition has been applied correctly.");
 
         java.lang.Thread.sleep(4000);
     }
 
+    // For validate filter result
     public int checkFilterAPI(String status, String requesterEmail, String firstName, String lastName, String studentDistrictId) {
 
         int iResut = 0;
@@ -155,9 +134,8 @@ public class AssignmentTest {
         List<String> responseLastName = jsonPathEvaluator.getList("studentAccessRequests.lastName");
         List<String> responseStudentDistrictId = jsonPathEvaluator.getList("studentAccessRequests.studentDistrictId");
 
-
         //compare keywords input vs returned data
-        // Idea: each attribute of
+        // Idea: if there is any record in returned table DOES NOT contain keyword on relevant column, then return 0 => fail.
         for (int i = 0; i < responseStatus.size(); i++) {
             if (responseStatus.get(i).contains(status) == true) {
                 if (responseRequesterEmail.get(i).contains(requesterEmail) == true) {
@@ -199,9 +177,8 @@ public class AssignmentTest {
         return iResut;
     }
 
-
-    @Test(priority = 6)
-    public void testFilter() {
+    @Test(priority = 4)
+    public void validateFilterResult() {
         int testResult = this.checkFilterAPI("approved", "test+giapios@karrostech.com", "KIMBER", "MICHALSON", "111318");
         String strResult = String.valueOf(testResult);
 
@@ -209,9 +186,9 @@ public class AssignmentTest {
         System.out.println("Filter Success");
     }
 
-    @Test(priority = 99)
-    public void xPathFinding(){
-        WebElement x,y,z;
+    //@Test(priority = 99)
+    public void xPathFinding() {
+        WebElement x, y, z;
         //x = driver.findElement(By.xpath("//tr[contains(., 'Approved')/td[2]/div[1]/p and contains(text(), '10/08/2019')/td[3]/div[1]]"));
 
         //z = driver.findElement(By.xpath("//tr/td/div/p[contains(.,'Approved')]"));
