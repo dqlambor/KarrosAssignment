@@ -2,7 +2,7 @@
 <duyquang.nguyen>
 
 In order to run the application, please setup the environment as follwing informations:
-- First: make sure you have setup FirefoxDriver on your machine.
+- Firstly, make sure you have setup and successfully run the FirefoxDriver on your machine.
 - Download Rest-Assured Jars/Library to include into the project: https://github.com/rest-assured/rest-assured/wiki/Downloads
 - Download and open the project in your development IDE ( I use Intellij 2018.3) 
   + Please select "Import changes" when you get event message "Maven project need to be imported"
