@@ -11,6 +11,11 @@ In order to run the application, please setup the environment as follwing inform
 - Add all the "jar" files from Rest-Assured into the project as an External Library (This should include the "rest-assured-4.3.0.jar" and all jars inside the "rest-assured-4.3.0-deps" folder.
 - Then you should be able to combine and run the "AssignmentTest".
 - Mornitor the test Result via console output.
+*Please notes:
+- @Test(priority = 3) will run the method to Verify filter Student Access Request with INACTIVE.
+- @Test(priority = 5) and @Test(priority = 6) will run the methods to Verify sorting of First Name column.
+- @Test(priority = 7) will run the method for testing API endpoint.
+
 
 Regards,
 Duy Quang
