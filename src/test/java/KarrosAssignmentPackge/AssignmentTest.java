@@ -46,6 +46,7 @@ public class AssignmentTest {
         Assert.assertEquals(driver.getTitle().toString(), pageTitle);
         System.out.println("Open Login page successfully.");
     }
+
     // Method to validate Log in
     @Test(priority = 2)
     public void validateLogin() throws Exception {
@@ -91,7 +92,7 @@ public class AssignmentTest {
             //if childElement[i] does not contain "Inactive" => fail => return 0
             if (childElements.get(i).getText().contains("Inactive") != true) {
                 testResult = 0;
-                System.out.println("Inactive Filter does not execute correctly. There is [" + childElements.get(i).getText()+"] item from result table.");
+                System.out.println("Inactive Filter does not execute correctly. There is [" + childElements.get(i).getText() + "] item from result table.");
                 break;
             } else {
                 testResult = 1;
@@ -108,7 +109,7 @@ public class AssignmentTest {
 
     // Method to validate First Name Descending sort
     @Test(priority = 5)
-    public void validateFirstNameDescendingSort() throws Exception{
+    public void validateFirstNameDescendingSort() throws Exception {
 
         // reload the page: ( must login first)
         driver.get("http://ktvn-test.s3-website.us-east-1.amazonaws.com/");
@@ -126,28 +127,24 @@ public class AssignmentTest {
                 .findElements(By.xpath("//table/tbody/tr/td[6]")); // FIrst Name Column
         List<String> elementFirstName = new ArrayList<String>();
 
-        for(int i =0; i < childElements.size();i++ ){
+        for (int i = 0; i < childElements.size(); i++) {
             elementFirstName.add(childElements.get(i).getText());
         }
         //System.out.println("-> size of Array Element: " + elementFirstName.size());
 
         // clone a list of elementFirstName and sort it, then compare with the original list
         List<String> copyOf = new ArrayList<String>(elementFirstName);
-
         Collections.sort(copyOf); // Sort Ascending
         Collections.reverse(copyOf); // reverse the List because it was sorted by Ascending
 
-        System.out.println("elementFirstName is: "+ elementFirstName);
-        System.out.println("copyOf is: "+ copyOf);
-
         Assert.assertTrue(elementFirstName.equals(copyOf));
-        System.out.println("First Name List was Sorted by Descending."); //the list should be sorted by DESCENDING
+        System.out.println("First Name column was sorted by Descending properly."); //the list should be sorted by DESCENDING
         java.lang.Thread.sleep(2000);
     }
 
     // Method to validate First Name ascending sort
     @Test(priority = 6)
-    public void validateFirstNameAscendingSort() throws Exception{
+    public void validateFirstNameAscendingSort() throws Exception {
 
         // reload the page: ( must login first)
         driver.get("http://ktvn-test.s3-website.us-east-1.amazonaws.com/");
@@ -167,22 +164,33 @@ public class AssignmentTest {
                 .findElements(By.xpath("//table/tbody/tr/td[6]")); // FIrst Name Column
         List<String> elementFirstName = new ArrayList<String>();
 
-        for(int i =0; i < childElements.size();i++ ){
+        for (int i = 0; i < childElements.size(); i++) {
             elementFirstName.add(childElements.get(i).getText());
         }
         //System.out.println("-> size of Array Element: " + elementFirstName.size());
 
         // clone a list of elementFirstName and sort it, then compare with the original list
         List<String> copyOf = new ArrayList<String>(elementFirstName);
-
         Collections.sort(copyOf); // Sort Ascending
 
-        System.out.println("elementFirstName is: "+ elementFirstName);
-        System.out.println("copyOf is: "+ copyOf);
-
         Assert.assertTrue(elementFirstName.equals(copyOf));
-        System.out.println("First Name List was Sorted by Ascending."); //the list should be sorted by DESCENDING
+        System.out.println("First Name column was sorted by Ascending properly."); //the list should be sorted by DESCENDING
         java.lang.Thread.sleep(2000);
+    }
+
+    // Method for testing API endpoint
+    @Test(priority = 7)
+    public void validateApiEndpoint() throws Exception {
+        RestAssured.baseURI = "https://my-json-server.typicode.com/typicode/demo/posts";
+        RequestSpecification httpRequest = RestAssured.given();
+        Response response = httpRequest.get("/1");
+
+        // Get the status code from the Response.
+        int statusCode = response.getStatusCode();
+
+        // Assert that status code = 200 is returned.
+        Assert.assertEquals(statusCode, 200);
+        System.out.println("Successfully interact with the web services.");
     }
 
     // Method to validate filter result via API
@@ -246,6 +254,7 @@ public class AssignmentTest {
         //it should return 1 when all matched
         return iResut;
     }
+
     //@Test(priority = 99)
     public void validateFilterResult() {
         int testResult = this.checkFilterAPI("approved", "test+giapios@karrostech.com", "KIMBER", "MICHALSON", "111318");
@@ -253,7 +262,10 @@ public class AssignmentTest {
 
         Assert.assertEquals(strResult, "1");
         System.out.println("Filter Success");
+
     }
+
+
 
 }
 
