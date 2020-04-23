@@ -1,30 +1,21 @@
 package KarrosAssignmentPackge;
 
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import org.omg.Messaging.SYNC_WITH_TRANSPORT;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.safari.SafariDriver;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.AfterTest;
 
-import sun.jvm.hotspot.runtime.Thread;
-import sun.jvm.hotspot.runtime.Threads;
-
-import java.security.PrivateKey;
-import java.util.List;
-import java.util.PriorityQueue;
 
 /**
  * Created by lambor on 19/4/20.
@@ -43,6 +34,7 @@ public class AssignmentTest {
         System.out.println("Tearing down...finish this test!!!");
     }
 
+    // Method to start firefox driver
     @Test(priority = 1)
     public void startFireFoxDriver() {
         //open Login page
@@ -54,7 +46,7 @@ public class AssignmentTest {
         Assert.assertEquals(driver.getTitle().toString(), pageTitle);
         System.out.println("Open Login page successfully.");
     }
-
+    // Method to validate Log in
     @Test(priority = 2)
     public void validateLogin() throws Exception {
 
@@ -70,7 +62,7 @@ public class AssignmentTest {
         java.lang.Thread.sleep(1000);
     }
 
-    // to Verify filter Student Access Request with INACTIVE
+    // Method to Verify filter Student Access Request with INACTIVE
     @Test(priority = 3)
     public void validateInactiveFilter() throws Exception {
 
@@ -111,10 +103,89 @@ public class AssignmentTest {
         Assert.assertEquals(String.valueOf(testResult), "1");
         System.out.println("Filter condition has been applied correctly.");
 
-        java.lang.Thread.sleep(4000);
+        java.lang.Thread.sleep(3000);
     }
 
-    // For validate filter result
+    // Method to validate First Name Descending sort
+    @Test(priority = 5)
+    public void validateFirstNameDescendingSort() throws Exception{
+
+        // reload the page: ( must login first)
+        driver.get("http://ktvn-test.s3-website.us-east-1.amazonaws.com/");
+
+        //click to Sort FIrstName Descending:
+        driver.findElement(By.xpath("//table/thead/tr/th[@data-field='firstName']")).click();
+        Thread.sleep(2000);
+
+        //get array of Firstname column
+        // parentElement contains all results
+        WebElement parentElement = driver.findElement(By.cssSelector("tbody"));
+
+        //get list of filter results:
+        List<WebElement> childElements = parentElement
+                .findElements(By.xpath("//table/tbody/tr/td[6]")); // FIrst Name Column
+        List<String> elementFirstName = new ArrayList<String>();
+
+        for(int i =0; i < childElements.size();i++ ){
+            elementFirstName.add(childElements.get(i).getText());
+        }
+        //System.out.println("-> size of Array Element: " + elementFirstName.size());
+
+        // clone a list of elementFirstName and sort it, then compare with the original list
+        List<String> copyOf = new ArrayList<String>(elementFirstName);
+
+        Collections.sort(copyOf); // Sort Ascending
+        Collections.reverse(copyOf); // reverse the List because it was sorted by Ascending
+
+        System.out.println("elementFirstName is: "+ elementFirstName);
+        System.out.println("copyOf is: "+ copyOf);
+
+        Assert.assertTrue(elementFirstName.equals(copyOf));
+        System.out.println("First Name List was Sorted by Descending."); //the list should be sorted by DESCENDING
+        java.lang.Thread.sleep(2000);
+    }
+
+    // Method to validate First Name ascending sort
+    @Test(priority = 6)
+    public void validateFirstNameAscendingSort() throws Exception{
+
+        // reload the page: ( must login first)
+        driver.get("http://ktvn-test.s3-website.us-east-1.amazonaws.com/");
+
+        //click to Sort FIrstName Descending:
+        driver.findElement(By.xpath("//table/thead/tr/th[@data-field='firstName']")).click();
+        Thread.sleep(1000);
+        //click again to sort by Ascending
+        driver.findElement(By.xpath("//table/thead/tr/th[@data-field='firstName']")).click();
+
+        //get array of Firstname column
+        // parentElement contains all results
+        WebElement parentElement = driver.findElement(By.cssSelector("tbody"));
+
+        //get list of filter results:
+        List<WebElement> childElements = parentElement
+                .findElements(By.xpath("//table/tbody/tr/td[6]")); // FIrst Name Column
+        List<String> elementFirstName = new ArrayList<String>();
+
+        for(int i =0; i < childElements.size();i++ ){
+            elementFirstName.add(childElements.get(i).getText());
+        }
+        //System.out.println("-> size of Array Element: " + elementFirstName.size());
+
+        // clone a list of elementFirstName and sort it, then compare with the original list
+        List<String> copyOf = new ArrayList<String>(elementFirstName);
+
+        Collections.sort(copyOf); // Sort Ascending
+
+        System.out.println("elementFirstName is: "+ elementFirstName);
+        System.out.println("copyOf is: "+ copyOf);
+
+        Assert.assertTrue(elementFirstName.equals(copyOf));
+        System.out.println("First Name List was Sorted by Ascending."); //the list should be sorted by DESCENDING
+        java.lang.Thread.sleep(2000);
+    }
+
+    // Method to validate filter result via API
     public int checkFilterAPI(String status, String requesterEmail, String firstName, String lastName, String studentDistrictId) {
 
         int iResut = 0;
@@ -143,8 +214,7 @@ public class AssignmentTest {
                         if (responseLastName.get(i).contains(lastName) == true) {
                             if (responseStudentDistrictId.get(i).contains(studentDistrictId) == true) {
                                 iResut = 1;
-                                System.out.println("First name is: " + responseFirstName.get(i));
-                                // break; //Break to test 1st result
+                                //System.out.println("First name is: " + responseFirstName.get(i));
                             } else {
                                 iResut = 0;
                                 System.out.println("Response responseStudentDistrictId " + responseStudentDistrictId.get(i) + " does NOT contains studentDistrictId " + studentDistrictId);
@@ -173,11 +243,10 @@ public class AssignmentTest {
             }
 
         }
-        //return 1 when all matched
+        //it should return 1 when all matched
         return iResut;
     }
-
-    @Test(priority = 4)
+    //@Test(priority = 99)
     public void validateFilterResult() {
         int testResult = this.checkFilterAPI("approved", "test+giapios@karrostech.com", "KIMBER", "MICHALSON", "111318");
         String strResult = String.valueOf(testResult);
@@ -186,23 +255,6 @@ public class AssignmentTest {
         System.out.println("Filter Success");
     }
 
-    //@Test(priority = 99)
-    public void xPathFinding() {
-        WebElement x, y, z;
-        //x = driver.findElement(By.xpath("//tr[contains(., 'Approved')/td[2]/div[1]/p and contains(text(), '10/08/2019')/td[3]/div[1]]"));
-
-        //z = driver.findElement(By.xpath("//tr/td/div/p[contains(.,'Approved')]"));
-        //z = driver.findElement(By.xpath("//tr[td/div/p[contains(.,'Approved')] and td[div='Invalid date']]"));//work
-        z = driver.findElement(By.xpath("//tr[td/div/p[contains(.,'Approved')] and td[3]/div[contains(.,'2019')]]"));// WORK
-        System.out.println(z.toString());
-
-        List<WebElement> a = driver.findElements(By.xpath("//tr[td/div/p[contains(.,'Approved')] and td[3]/div[contains(.,'2019')]]"));// WORK
-
-        //y = driver.findElement(By.xpath("//tr/td[3][div='Invalid date']")); //works.
-
-        //table[@class="table_list"]
-        // tr[td[@class="col_firstname"] = "John" and td[@class="col_lastname"] = "Wayne"]/td[@class="col_functions"]/text()
-
-        System.out.println(a.size());
-    }
 }
+
+
